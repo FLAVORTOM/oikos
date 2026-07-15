@@ -1,5 +1,5 @@
 // Oikos service worker — cache the app shell, never cache Dropbox data
-const CACHE = 'oikos-v1';
+const CACHE = 'oikos-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
