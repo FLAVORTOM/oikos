@@ -139,6 +139,33 @@
   .cat.hot .c-note{color:var(--amber)}
   .cat-foot{display:flex;justify-content:space-between;font-size:.66rem;color:var(--silver-dim);border-top:1px solid var(--line);margin-top:.5rem;padding-top:.7rem}
   .cat-foot b{color:var(--white);font-weight:500}
+  .cat{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .cat .c-name::after{content:'›';color:var(--silver-dim);margin-left:.4rem;font-size:.9rem;line-height:1}
+  .cat:active{opacity:.6}
+  .partial-note{font-size:.64rem;color:var(--amber);margin-top:.5rem;line-height:1.5}
+
+  /* drill-down */
+  .dd-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+  .dd-title{font-size:1.05rem;font-weight:400}
+  .dd-sum{font-size:2rem;font-weight:300;letter-spacing:-.02em;margin-top:.3rem}
+  .dd-pace{font-size:.74rem;color:var(--silver);margin-top:.2rem}
+  .dd-pace b{font-weight:500}
+  .dd-pace.hot b{color:var(--amber)}
+  .dd-pace.cool b{color:var(--green)}
+  .dd-close{background:none;border:1px solid var(--line);color:var(--silver);border-radius:50%;width:30px;height:30px;font-size:.9rem;cursor:pointer;flex:0 0 30px;font-family:inherit}
+  .dd-sec{font-size:.62rem;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--silver-dim);margin:1.3rem 0 .3rem}
+  .tx{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.5rem 0;font-size:.78rem;border-top:1px solid var(--line)}
+  .tx .t-name{color:var(--white);font-weight:400;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tx .t-meta{font-size:.64rem;color:var(--silver-dim);display:block;font-weight:300;margin-top:1px}
+  .tx .t-amt{font-weight:500;white-space:nowrap}
+  .merch{display:flex;align-items:center;gap:.7rem;padding:.5rem 0;font-size:.78rem;border-top:1px solid var(--line)}
+  .merch .m-name{flex:0 0 34%;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .merch .m-track{flex:1;height:5px;border-radius:3px;background:#1c1c1c;overflow:hidden}
+  .merch .m-fill{height:100%;border-radius:3px;background:var(--green-deep)}
+  .merch .m-amt{flex:0 0 auto;color:var(--silver);font-size:.72rem;min-width:52px;text-align:right}
+  .merch .m-amt b{color:var(--white);font-weight:500}
+  .dd-compare{font-size:.72rem;color:var(--silver);margin-top:.4rem;padding-top:.8rem;border-top:1px solid var(--line);line-height:1.6}
+  .dd-compare b{color:var(--white);font-weight:500}
 
   .foot{text-align:center;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--silver-dim);margin-top:2rem;line-height:2}
   .refresh-note{text-align:center;font-size:.66rem;color:var(--silver-dim);margin-top:.4rem}
@@ -211,6 +238,7 @@
         <span>Month <b id="cat-progress">—</b> elapsed</span>
         <span>Total <b id="cat-total">—</b></span>
       </div>
+      <div class="partial-note hidden" id="cat-partial"></div>
     </section>
 
     <div class="grid2 rise d5">
@@ -257,6 +285,22 @@
   </div>
 </div>
 
+<!-- DRILL-DOWN -->
+<div class="sheet" id="dd" onclick="if(event.target===this)closeDrill()">
+  <div class="sheet-inner">
+    <div class="dd-head">
+      <div>
+        <div class="eyebrow" id="dd-month">—</div>
+        <div class="dd-title" id="dd-title">—</div>
+        <div class="dd-sum" id="dd-sum">—</div>
+        <div class="dd-pace" id="dd-pace"></div>
+      </div>
+      <button class="dd-close" onclick="closeDrill()" aria-label="Close">✕</button>
+    </div>
+    <div id="dd-body"></div>
+  </div>
+</div>
+
 <!-- SETTINGS -->
 <div class="sheet" id="sheet" onclick="if(event.target===this)closeSettings()">
   <div class="sheet-inner">
@@ -270,10 +314,14 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
-/* ================= CONFIG ================= */
-const DROPBOX_APP_KEY = 'p49vb7fawu1ckvb';
-/* ========================================== */
+/* ================= CONFIG =================
+   The Dropbox app key lives in config.js so that upgrading index.html
+   never clobbers it. config.js is written once and left alone.
+   (The app key is public by design — PKCE means no secret is needed here.)
+========================================== */
+const DROPBOX_APP_KEY = (window.OIKOS_CONFIG && window.OIKOS_CONFIG.dropboxAppKey) || '';
 
 const REDIRECT = location.origin + location.pathname;
 const LS = {
@@ -307,6 +355,10 @@ async function sha256(str){ return b64url(await crypto.subtle.digest('SHA-256', 
 function randomString(len){ const a = new Uint8Array(len); crypto.getRandomValues(a); return b64url(a).slice(0, len); }
 
 async function connectDropbox(){
+  if(!DROPBOX_APP_KEY){
+    showConnectError('No Dropbox app key found. Add it to config.js in your oikos repo, then reload.');
+    return;
+  }
   const verifier = randomString(64);
   sessionStorage.setItem('pkce-verifier', verifier);
   const challenge = await sha256(verifier);
@@ -507,7 +559,7 @@ function renderCategories(){
            : pct > 0 ? `Pacing ${pct}% above your ${fmt$(b)} average`
                      : `Pacing ${Math.abs(pct)}% below your ${fmt$(b)} average`;
     } else if(b > 0){ note = `Average ${fmt$(b)}/mo`; }
-    return `<div class="cat${hot?' hot':''}">
+    return `<div class="cat${hot?' hot':''}" onclick="openDrill('${k}')">
       <div class="top-row"><span class="c-name">${CAT_LABELS[k] || k}</span><span class="c-amt"><b>${fmt$(v)}</b></span></div>
       <div class="track"><div class="fill" data-w="${Math.min(100, v/maxRef*100)}%"></div>${b>0?`<div class="basemark" style="left:${Math.min(100, b/maxRef*100)}%"></div>`:''}</div>
       <div class="c-note">${note}</div>
@@ -516,6 +568,16 @@ function renderCategories(){
 
   document.getElementById('cat-progress').textContent = Math.round(prog*100) + '%';
   document.getElementById('cat-total').textContent = fmt$(cur.total);
+
+  // be honest about how thin the baseline is
+  const nBase = (base._n != null) ? base._n : null;
+  const noteEl = document.getElementById('cat-partial');
+  if(nBase != null && nBase < 2){
+    noteEl.textContent = nBase === 0
+      ? 'No complete prior month yet — comparisons appear once a full month of history exists.'
+      : 'Baseline rests on 1 complete month (' + (base._months||[]).join(', ') + '). Treat comparisons lightly until more history accumulates.';
+    noteEl.classList.remove('hidden');
+  } else { noteEl.classList.add('hidden'); }
   requestAnimationFrame(()=> document.querySelectorAll('.cat .fill').forEach(f=> setTimeout(()=> f.style.width = f.dataset.w, 200)));
 }
 
@@ -621,6 +683,68 @@ function renderWatch(){
   );
   document.getElementById('watch').innerHTML = rows.join('') || '<div class="watch-row"><span class="w-name">Nothing on watch</span></div>';
 }
+
+/* ---------- drill-down ---------- */
+function openDrill(cat){
+  if(!categories || !categories.detail) return;
+  const txs = categories.detail[cat] || [];
+  const cur = categories.months[categories.currentMonth];
+  const spent = cur.categories[cat] || 0;
+  const base = (categories.baseline || {})[cat] || 0;
+  const prog = categories.monthProgress || 1;
+  const [y,m] = categories.currentMonth.split('-');
+  const monthName = new Date(+y, +m-1, 1).toLocaleDateString('en-US',{month:'long', year:'numeric'});
+
+  document.getElementById('dd-month').textContent = monthName;
+  document.getElementById('dd-title').textContent = CAT_LABELS[cat] || cat;
+  document.getElementById('dd-sum').textContent = fmt$(spent);
+
+  const paceEl = document.getElementById('dd-pace');
+  if(base > 0 && prog > 0.15){
+    const projected = spent / prog;
+    const pct = Math.round((projected/base - 1) * 100);
+    paceEl.className = 'dd-pace ' + (pct > 15 ? 'hot' : pct < -15 ? 'cool' : '');
+    paceEl.innerHTML = `Projected month-end <b>${fmt$(projected)}</b> vs. ${fmt$(base)} average`;
+  } else if(base > 0){
+    paceEl.className = 'dd-pace';
+    paceEl.innerHTML = `Average <b>${fmt$(base)}</b>/mo · too early to project`;
+  } else { paceEl.className = 'dd-pace'; paceEl.textContent = ''; }
+
+  // group by merchant
+  const byMerch = {};
+  for(const t of txs) byMerch[t.name] = (byMerch[t.name] || 0) + t.amount;
+  const merch = Object.entries(byMerch).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxM = merch.length ? merch[0][1] : 1;
+
+  let html = '';
+  if(merch.length > 1){
+    html += '<div class="dd-sec">Where it went</div>';
+    html += merch.map(([n,v])=>`<div class="merch">
+      <span class="m-name">${n}</span>
+      <span class="m-track"><span class="m-fill" style="width:${v/maxM*100}%"></span></span>
+      <span class="m-amt"><b>${fmt$(v)}</b></span>
+    </div>`).join('');
+  }
+
+  html += '<div class="dd-sec">Transactions · largest first</div>';
+  html += txs.map(t=>`<div class="tx">
+    <span class="t-name">${t.name}<span class="t-meta">${new Date(t.date+'T12:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} · ${t.account || ''}</span></span>
+    <span class="t-amt">${fmt$(t.amount)}</span>
+  </div>`).join('') || '<div class="tx"><span class="t-name">No transactions recorded</span></div>';
+
+  // like-for-like comparison with the last complete month
+  if(categories.compareMonth && categories.compareDetail && categories.compareDetail[cat]){
+    const cmpTotal = (categories.months[categories.compareMonth]?.categories?.[cat]) || 0;
+    const [cy,cm] = categories.compareMonth.split('-');
+    const cmpName = new Date(+cy, +cm-1, 1).toLocaleDateString('en-US',{month:'long'});
+    const cmpTop = [...categories.compareDetail[cat]].slice(0,3).map(t=>t.name).join(', ');
+    html += `<div class="dd-compare">In ${cmpName} this category totalled <b>${fmt$(cmpTotal)}</b>. Largest then: ${cmpTop}.</div>`;
+  }
+
+  document.getElementById('dd-body').innerHTML = html;
+  document.getElementById('dd').classList.add('open');
+}
+function closeDrill(){ document.getElementById('dd').classList.remove('open'); }
 
 /* ---------- settings ---------- */
 function openSettings(){
