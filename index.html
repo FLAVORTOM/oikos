@@ -198,6 +198,33 @@
   .nw-total .big{font-size:1.3rem;font-weight:500;color:var(--white)}
   .nw-note{font-size:.66rem;color:var(--silver-dim);margin-top:.7rem;line-height:1.5}
 
+  /* grouped pockets */
+  .pgroup{margin-top:.9rem}
+  .pgroup:first-child{margin-top:.3rem}
+  .pgroup-head{display:flex;justify-content:space-between;align-items:baseline;font-size:.62rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--silver-dim);margin-bottom:.15rem}
+  .pgroup-head .g-sum{color:var(--silver);letter-spacing:0;font-weight:500}
+  .prow{display:flex;justify-content:space-between;align-items:baseline;padding:.4rem 0;font-size:.8rem;border-top:1px solid var(--line)}
+  .prow .pr-name{color:var(--white);font-weight:400}
+  .prow .pr-name small{color:var(--silver-dim);font-size:.66rem;margin-left:.4rem}
+  .prow .pr-val{font-weight:500}
+  .prow .pr-val.zero{color:var(--silver-dim);font-weight:400}
+  .prow.short .pr-val{color:var(--amber)}
+
+  /* action watch */
+  .act{display:flex;gap:.75rem;align-items:flex-start;padding:.6rem 0;font-size:.8rem}
+  .act+.act{border-top:1px solid var(--line)}
+  .act .a-icon{flex:0 0 20px;height:20px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.7rem;margin-top:1px}
+  .act .a-icon.debt{background:rgba(230,138,138,.16);color:var(--red)}
+  .act .a-icon.short{background:rgba(230,200,122,.16);color:var(--amber)}
+  .act .a-icon.fee{background:rgba(230,200,122,.16);color:var(--amber)}
+  .act .a-body{flex:1}
+  .act .a-title{color:var(--white);font-weight:500}
+  .act .a-sub{color:var(--silver-dim);font-size:.7rem;margin-top:1px}
+  .act .a-val{font-weight:500;white-space:nowrap}
+  .act .a-val.debt{color:var(--red)}
+  .watch-clear{font-size:.76rem;color:var(--silver);padding:.4rem 0;display:flex;align-items:center;gap:.5rem}
+  .watch-clear::before{content:'✓';color:var(--green)}
+
   .foot{text-align:center;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--silver-dim);margin-top:2rem;line-height:2}
   .refresh-note{text-align:center;font-size:.66rem;color:var(--silver-dim);margin-top:.4rem}
   .hidden{display:none!important}
@@ -816,22 +843,94 @@ function renderMetrics(){
   document.getElementById('m-cards-sub').textContent = w.southwest ? 'Discover + Southwest' : 'Discover (Southwest pending)';
 }
 
+// Pocket classification by mask. Bill pockets can carry a known monthly bill
+// for shortfall detection. e-fund + shared live in the Buckets card, excluded here.
+const POCKET_GROUPS = {
+  bills: {
+    label: 'Bills',
+    masks: {
+      '9406': { name: 'Home', bill: 3167 },
+      '9415': { name: 'Daycare', bill: 2210 },
+      '9413': { name: 'ComEd', bill: 181 },
+      '9409': { name: 'Phone' },
+      '9411': { name: 'Health' },
+      '9410': { name: 'Life Insurance' }
+    }
+  },
+  goals: {
+    label: 'Savings goals',
+    masks: {
+      '6006': { name: 'Travel' },
+      '9412': { name: 'Entertainment' }
+    }
+  },
+  business: {
+    label: 'Business',
+    masks: {
+      '9408': { name: 'HireGrade / Etsy' },
+      '2608': { name: "Lauren's Etsy" }
+    }
+  }
+};
+
 function renderPockets(){
   const raw = data.raw || [];
-  const skip = new Set(['9402','6002','2607','6005']); // bucket accounts shown above
-  const pockets = raw.filter(a => a.type === 'depository' && !skip.has(a.mask) && a.balance != null)
-                     .sort((a,b)=> b.balance - a.balance);
-  document.getElementById('pockets').innerHTML = pockets.map(p =>
-    `<div class="pocket"><span class="p-name">${p.name}</span><span class="p-val${p.balance === 0 ? ' zero':''}">${fmt$(p.balance)}</span></div>`
-  ).join('') || '<div class="pocket"><span class="p-name">No pocket data yet</span></div>';
+  const balByMask = {};
+  for(const a of raw) if(a.mask != null) balByMask[a.mask] = a.balance;
+
+  let html = '';
+  for(const [key, group] of Object.entries(POCKET_GROUPS)){
+    const rows = Object.entries(group.masks)
+      .map(([mask, cfg]) => ({ ...cfg, mask, bal: balByMask[mask] }))
+      .filter(p => p.bal != null);
+    if(!rows.length) continue;
+    const sum = rows.reduce((s,p)=> s + p.bal, 0);
+    html += `<div class="pgroup"><div class="pgroup-head"><span>${group.label}</span><span class="g-sum">${fmt$(sum)}</span></div>`;
+    html += rows.map(p => {
+      const short = p.bill && p.bal < p.bill;
+      const note = p.bill ? `<small>of ${fmt$(p.bill)}</small>` : '';
+      return `<div class="prow${short?' short':''}"><span class="pr-name">${p.name}${note}</span><span class="pr-val${p.bal===0?' zero':''}">${fmt$(p.bal)}</span></div>`;
+    }).join('');
+    html += '</div>';
+  }
+  document.getElementById('pockets').innerHTML = html || '<div class="prow"><span class="pr-name">No pocket data yet</span></div>';
 }
 
 function renderWatch(){
   const w = data.watch || {};
-  const rows = Object.values(w).map(item =>
-    `<div class="watch-row"><span class="w-name">${item.label}</span><span class="w-val${item.type === 'liability' ? ' liab':''}">${fmt$(item.balance)}</span></div>`
-  );
-  document.getElementById('watch').innerHTML = rows.join('') || '<div class="watch-row"><span class="w-name">Nothing on watch</span></div>';
+  const raw = data.raw || [];
+  const balByMask = {};
+  for(const a of raw) if(a.mask != null) balByMask[a.mask] = a.balance;
+  const actions = [];
+
+  // 1. Credit cards carrying a balance (things to pay down)
+  for(const item of Object.values(w)){
+    if(item.type === 'liability' && item.balance > 0){
+      actions.push({ icon:'debt', cls:'debt', title:item.label, sub:'Balance to pay down', val:fmt$(item.balance) });
+    }
+  }
+
+  // 2. Bill pockets running short of their known bill
+  for(const [mask, cfg] of Object.entries(POCKET_GROUPS.bills.masks)){
+    if(cfg.bill && balByMask[mask] != null && balByMask[mask] < cfg.bill){
+      const gap = cfg.bill - balByMask[mask];
+      actions.push({ icon:'short', cls:'short', title:cfg.name + ' pocket short', sub:`${fmt$(balByMask[mask])} of ${fmt$(cfg.bill)} — mid-cycle is normal`, val:'−'+fmt$(gap) });
+    }
+  }
+
+  // 3. Known upcoming annual fee (Southwest, July)
+  const now = new Date();
+  if(now.getMonth() === 6){ // July
+    actions.push({ icon:'fee', cls:'fee', title:'Southwest annual fee', sub:'$229 posts in July — keep or downgrade?', val:'$229' });
+  }
+
+  if(!actions.length){
+    document.getElementById('watch').innerHTML = '<div class="watch-clear">Nothing needs attention</div>';
+    return;
+  }
+  document.getElementById('watch').innerHTML = actions.map(a =>
+    `<div class="act"><span class="a-icon ${a.icon}">${a.icon==='debt'?'●':a.icon==='fee'?'$':'!'}</span><span class="a-body"><span class="a-title">${a.title}</span><span class="a-sub">${a.sub}</span></span><span class="a-val ${a.cls==='debt'?'debt':''}">${a.val}</span></div>`
+  ).join('');
 }
 
 /* ---------- drill-down ---------- */
