@@ -167,6 +167,37 @@
   .dd-compare{font-size:.72rem;color:var(--silver);margin-top:.4rem;padding-top:.8rem;border-top:1px solid var(--line);line-height:1.6}
   .dd-compare b{color:var(--white);font-weight:500}
 
+  .inv-row{display:flex;justify-content:space-between;align-items:baseline;padding:.55rem 0;font-size:.82rem}
+  .inv-row+.inv-row{border-top:1px solid var(--line)}
+  .inv-row .i-name{color:var(--white);font-weight:400}
+  .inv-row .i-name small{display:block;color:var(--silver-dim);font-size:.64rem;font-weight:300;margin-top:1px}
+  .inv-row .i-val{font-weight:500}
+  .inv-foot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);margin-top:.4rem;padding-top:.85rem;font-size:.76rem;color:var(--silver)}
+  .inv-foot .big{font-size:1.05rem;font-weight:500;color:var(--white)}
+  .inv-foot .big i{font-style:normal;color:var(--green)}
+
+  /* net worth */
+  .nw-hero{text-align:center;padding:.3rem 0 .2rem}
+  .nw-num{font-size:2.6rem;font-weight:300;letter-spacing:-.03em;line-height:1.05;margin-top:.3rem}
+  .nw-delta{font-size:.74rem;color:var(--silver);margin-top:.3rem}
+  .nw-delta b{font-weight:500}
+  .nw-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:1.1rem 0 .5rem;gap:2px}
+  .nw-bar .seg{height:100%}
+  .nw-seg-cash{background:var(--green-deep)}
+  .nw-seg-invest{background:var(--green)}
+  .nw-seg-home{background:#7a9bd4}
+  .nw-line{display:flex;justify-content:space-between;align-items:baseline;padding:.5rem 0;font-size:.8rem}
+  .nw-line+.nw-line{border-top:1px solid var(--line)}
+  .nw-line.liab .nw-v{color:var(--amber)}
+  .nw-line .nw-k{color:var(--silver);display:flex;align-items:center;gap:.5rem}
+  .nw-line .nw-k .swatch{width:8px;height:8px;border-radius:2px}
+  .nw-line .nw-v{font-weight:500}
+  .nw-sub{padding-left:1.3rem;font-size:.72rem}
+  .nw-sub .nw-k{color:var(--silver-dim)}
+  .nw-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);margin-top:.4rem;padding-top:.9rem;font-size:.82rem;color:var(--silver)}
+  .nw-total .big{font-size:1.3rem;font-weight:500;color:var(--white)}
+  .nw-note{font-size:.66rem;color:var(--silver-dim);margin-top:.7rem;line-height:1.5}
+
   .foot{text-align:center;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--silver-dim);margin-top:2rem;line-height:2}
   .refresh-note{text-align:center;font-size:.66rem;color:var(--silver-dim);margin-top:.4rem}
   .hidden{display:none!important}
@@ -211,6 +242,18 @@
       <div class="delta" id="h-delta"></div>
     </section>
 
+    <section class="card rise d2 hidden" id="nw-card">
+      <div class="eyebrow">Net worth</div>
+      <div class="nw-hero">
+        <div class="nw-num" id="nw-num">—</div>
+        <div class="nw-delta" id="nw-delta"></div>
+      </div>
+      <div class="nw-bar" id="nw-bar"></div>
+      <div id="nw-lines"></div>
+      <div class="nw-total"><span>Net worth</span><span class="big" id="nw-total">—</span></div>
+      <div class="nw-note" id="nw-note"></div>
+    </section>
+
     <section class="card rise d2 hidden" id="insights-card">
       <div class="eyebrow">Overnight</div>
       <div class="ins-head" id="ins-headline">—</div>
@@ -253,6 +296,12 @@
         <div class="sub" id="m-cards-sub">Discover + Southwest</div>
       </div>
     </div>
+
+    <section class="card rise d5 hidden" id="inv-card">
+      <div class="eyebrow">Investments</div>
+      <div id="inv-rows" style="margin-top:.4rem"></div>
+      <div class="inv-foot"><span>Total invested</span><span class="big" id="inv-total">—</span></div>
+    </section>
 
     <section class="card rise d6">
       <div class="eyebrow">Pockets</div>
@@ -309,6 +358,9 @@
     <div class="frow"><label>Lauren net /mo</label><input type="number" id="s-lnet"></div>
     <div class="frow"><label>Core costs /mo</label><input type="number" id="s-core"></div>
     <div class="frow"><label>Bucket target ($ each)</label><input type="number" id="s-target"></div>
+    <div class="glabel" style="margin-top:1rem">Net worth — manual assets</div>
+    <div class="frow"><label>Home value (est.)</label><input type="number" id="s-home"></div>
+    <div class="frow"><label>Mortgage balance</label><input type="number" id="s-mortgage"></div>
     <button class="btn" style="width:100%" onclick="saveSettings()">Save</button>
     <button class="btn ghost" style="width:100%" onclick="disconnect()">Disconnect Dropbox on this device</button>
   </div>
@@ -506,6 +558,8 @@ function render(){
     ? 'Balances fetched ' + fetchedAt.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' })
     : '';
 
+  renderNetWorth();
+  renderInvestments();
   renderInsights();
   renderClimb(goal, pts);
   renderBuckets(b);
@@ -513,6 +567,102 @@ function render(){
   renderMetrics();
   renderPockets();
   renderWatch();
+}
+
+function renderInvestments(){
+  const inv = data.investments || {};
+  const card = document.getElementById('inv-card');
+  const entries = Object.entries(inv).filter(([,v]) => v && v.balance > 0);
+  if(!entries.length){ card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+
+  document.getElementById('inv-rows').innerHTML = entries.map(([,v])=>{
+    const bp = v.byPerson || {};
+    const parts = Object.entries(bp).map(([tag,amt])=>{
+      const who = tag.includes('lauren') ? 'L' : tag.includes('thomas') ? 'T' : tag;
+      return who + ' ' + fmt$(amt);
+    }).join(' · ');
+    return `<div class="inv-row"><span class="i-name">${v.label}${parts?`<small>${parts}</small>`:''}</span><span class="i-val">${fmt$(v.balance)}</span></div>`;
+  }).join('');
+
+  const total = entries.reduce((s,[,v])=> s + v.balance, 0);
+  document.getElementById('inv-total').innerHTML = '<i>' + fmt$(total) + '</i>';
+}
+
+// Optional local asset estimates (home value, etc.) live in settings.
+function getManualAssets(){
+  return JSON.parse(localStorage.getItem('oikos-assets') || 'null') || { homeValue: 0, mortgage: 0 };
+}
+
+function renderNetWorth(){
+  const card = document.getElementById('nw-card');
+  const b = data.buckets || {};
+  const r = data.retirement || {};
+  const inv = data.investments || {};
+  const w = data.watch || {};
+  const manual = getManualAssets();
+  const comp = data.computed || {};
+  // Prefer pipeline-computed values; fall back to manual entry
+  const assets = {
+    homeValue: (comp.home && comp.home.value) || manual.homeValue || 0,
+    mortgage: (comp.mortgage && comp.mortgage.balance != null) ? comp.mortgage.balance : (manual.mortgage || 0)
+  };
+  const mortgageComputed = !!(comp.mortgage && comp.mortgage.balance != null);
+  const homeComputed = !!(comp.home && comp.home.value);
+
+  // liquid cash = every depository account in raw
+  const cash = (data.raw || [])
+    .filter(a => a.type === 'depository' && a.balance != null)
+    .reduce((s,a)=> s + a.balance, 0);
+  const retire = (r.thomas || 0) + (r.lauren || 0);
+  const invest = Object.values(inv).reduce((s,v)=> s + (v?.balance || 0), 0);
+  const home = assets.homeValue || 0;
+
+  const cards = Object.values(w).filter(x => x.type === 'liability').reduce((s,x)=> s + x.balance, 0);
+  const mortgage = assets.mortgage || 0;
+
+  const totalAssets = cash + retire + invest + home;
+  const totalLiab = cards + mortgage;
+  const net = totalAssets - totalLiab;
+
+  // Need at least the linked data; home/mortgage optional
+  card.classList.remove('hidden');
+  document.getElementById('nw-num').textContent = fmt$(net);
+
+  // stacked bar of asset composition
+  const segs = [
+    ['cash', cash, 'nw-seg-cash'],
+    ['invest', retire + invest, 'nw-seg-invest'],
+    ['home', home, 'nw-seg-home']
+  ].filter(([,v]) => v > 0);
+  document.getElementById('nw-bar').innerHTML = segs.map(([,v,cls])=>
+    `<div class="seg ${cls}" style="width:${v/totalAssets*100}%"></div>`).join('');
+
+  const lines = [];
+  lines.push(`<div class="nw-line"><span class="nw-k"><span class="swatch nw-seg-cash"></span>Cash & savings</span><span class="nw-v">${fmt$(cash)}</span></div>`);
+  lines.push(`<div class="nw-line"><span class="nw-k"><span class="swatch nw-seg-invest"></span>Retirement</span><span class="nw-v">${fmt$(retire)}</span></div>`);
+  if(invest > 0) lines.push(`<div class="nw-line"><span class="nw-k"><span class="swatch nw-seg-invest" style="opacity:.6"></span>Investments</span><span class="nw-v">${fmt$(invest)}</span></div>`);
+  if(home > 0) lines.push(`<div class="nw-line"><span class="nw-k"><span class="swatch nw-seg-home"></span>Home ${homeComputed?'(appraised)':'(est.)'}</span><span class="nw-v">${fmt$(home)}</span></div>`);
+  if(cards > 0) lines.push(`<div class="nw-line liab"><span class="nw-k">Credit cards</span><span class="nw-v">−${fmt$(cards)}</span></div>`);
+  if(mortgage > 0) lines.push(`<div class="nw-line liab"><span class="nw-k">Mortgage${mortgageComputed?'':' (est.)'}</span><span class="nw-v">−${fmt$(mortgage)}</span></div>`);
+  if(home > 0 && mortgage > 0){
+    const equity = home - mortgage;
+    lines.push(`<div class="nw-line"><span class="nw-k" style="padding-left:1.3rem;color:var(--silver-dim);font-size:.72rem">↳ home equity</span><span class="nw-v" style="color:var(--green)">${fmt$(equity)}</span></div>`);
+  }
+  document.getElementById('nw-lines').innerHTML = lines.join('');
+
+  document.getElementById('nw-total').textContent = fmt$(net);
+
+  const missing = [];
+  if(home === 0) missing.push('home value');
+  if(mortgage === 0) missing.push('mortgage');
+  document.getElementById('nw-note').textContent = missing.length
+    ? 'Add your ' + missing.join(' and ') + ' in Settings for a complete picture.'
+    : (mortgageComputed ? 'Mortgage balance updates automatically as principal is paid down.' : '');
+
+  // delta from history (reserve+retire tracked; use retirement history as proxy signal)
+  const deltaEl = document.getElementById('nw-delta');
+  deltaEl.innerHTML = 'Assets <b>' + fmt$(totalAssets) + '</b> · Liabilities <b>' + fmt$(totalLiab) + '</b>';
 }
 
 function renderInsights(){
@@ -748,6 +898,9 @@ function closeDrill(){ document.getElementById('dd').classList.remove('open'); }
 
 /* ---------- settings ---------- */
 function openSettings(){
+  const assets = getManualAssets();
+  document.getElementById('s-home').value = assets.homeValue || '';
+  document.getElementById('s-mortgage').value = assets.mortgage || '';
   document.getElementById('s-tnet').value = settings.tnet;
   document.getElementById('s-lnet').value = settings.lnet;
   document.getElementById('s-core').value = settings.core;
@@ -759,6 +912,7 @@ function saveSettings(){
   const num = id => parseFloat(document.getElementById(id).value) || 0;
   settings = { tnet: num('s-tnet'), lnet: num('s-lnet'), core: num('s-core'), target: num('s-target') || 12000 };
   localStorage.setItem(LS.settings, JSON.stringify(settings));
+  localStorage.setItem('oikos-assets', JSON.stringify({ homeValue: num('s-home'), mortgage: num('s-mortgage') }));
   closeSettings(); render();
 }
 
