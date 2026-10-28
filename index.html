@@ -71,13 +71,50 @@
   .metric .val em{font-style:normal;font-size:.76rem;color:var(--silver);font-weight:400}
   .metric .sub{font-size:.68rem;color:var(--silver);margin-top:.25rem}
 
-  /* pockets */
-  .pockets{display:grid;grid-template-columns:1fr 1fr;gap:.15rem .9rem;margin-top:.6rem}
-  .pocket{display:flex;justify-content:space-between;align-items:baseline;padding:.42rem 0;border-bottom:1px solid var(--line);font-size:.76rem}
-  .pocket:nth-last-child(-n+2){border-bottom:none}
-  .pocket .p-name{color:var(--silver)}
-  .pocket .p-val{font-weight:500}
-  .pocket .p-val.zero{color:var(--silver-dim);font-weight:400}
+  /* bill calendar */
+  .cal-top{display:flex;justify-content:space-between;align-items:flex-start;gap:.9rem;margin-top:.5rem}
+  .cal-due{font-size:1.6rem;font-weight:300;letter-spacing:-.025em;line-height:1.1}
+  .cal-due small{display:block;font-size:.67rem;color:var(--silver);font-weight:400;letter-spacing:0;margin-top:.2rem}
+  .cal-verdict{flex:0 1 47%;font-size:.69rem;line-height:1.5;text-align:right;color:var(--green)}
+  .cal-verdict b{font-weight:600}
+  .cal-verdict.warn{color:var(--amber)}
+  .cal-verdict.bad{color:var(--red)}
+  .cal-verdict.mute{color:var(--silver-dim)}
+  .cal-dow,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-dow{margin-top:1.05rem;font-size:.54rem;letter-spacing:.1em;color:var(--silver-dim);text-align:center}
+  .cal-grid{margin-top:.2rem}
+  .cday{position:relative;aspect-ratio:1/.8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:9px;-webkit-tap-highlight-color:transparent}
+  .cday .dnum{font-size:.62rem;color:var(--silver-dim);line-height:1;white-space:nowrap}
+  .cday .dnum em{font-style:normal;font-size:.52rem;letter-spacing:.08em;color:var(--silver);margin-right:.18em}
+  .cday.gone{opacity:.42}
+  .cday.today{background:#1a1a1a}
+  .cday.today .dnum{color:var(--white);font-weight:600}
+  .cday.has{cursor:pointer}
+  .cday.has:active{opacity:.55}
+  .cday.payday::after{content:'';position:absolute;bottom:4px;left:50%;transform:translateX(-50%);width:11px;height:1.5px;border-radius:1px;background:rgba(182,240,156,.3)}
+  .cdots{display:flex;align-items:center;justify-content:center;gap:2px;height:8px}
+  .bdot{width:6px;height:6px;border-radius:50%;background:#3a3a38}
+  .bdot.funded{background:var(--green)}
+  .bdot.short{width:7px;height:7px;background:transparent;box-shadow:inset 0 0 0 1.5px var(--amber)}
+  .bdot.overdue{background:var(--red);box-shadow:0 0 7px rgba(232,138,138,.55)}
+  .bdot.paid,.bdot.past{background:transparent;box-shadow:inset 0 0 0 1px var(--silver-dim)}
+  .cal-legend{display:flex;flex-wrap:wrap;gap:.25rem .85rem;margin-top:.9rem;padding-top:.8rem;border-top:1px solid var(--line);font-size:.62rem;color:var(--silver-dim)}
+  .cal-legend span{display:flex;align-items:center;gap:.35rem}
+  .cal-alerts:not(:empty){margin-top:.5rem;padding-top:.3rem;border-top:1px solid var(--line)}
+  .cal-note{font-size:.64rem;color:var(--silver-dim);margin-top:.7rem;line-height:1.55}
+  #other-pockets{margin-top:.2rem}
+  #other-pockets .prow{font-size:.74rem;padding:.33rem 0}
+  #other-pockets .prow .pr-name{color:var(--silver)}
+  #other-pockets .prow .pr-val{color:var(--silver);font-weight:500}
+  #other-pockets .prow .pr-val.zero{color:var(--silver-dim);font-weight:400}
+  /* day sheet */
+  .bill{display:flex;gap:.75rem;align-items:flex-start;padding:.65rem 0;font-size:.8rem;border-top:1px solid var(--line)}
+  .bill .b-body{flex:1}
+  .bill .b-name{display:block;color:var(--white);font-weight:500}
+  .bill .b-sub{display:block;color:var(--silver-dim);font-size:.7rem;margin-top:3px;line-height:1.5}
+  .bill .b-amt{font-weight:500;white-space:nowrap;text-align:right}
+  .bill .b-amt small{display:block;font-weight:400;font-size:.64rem;color:var(--silver-dim);margin-top:2px}
+  .bill .bdot{flex:0 0 7px;margin-top:.4rem}
 
   /* watch */
   .watch-row{display:flex;justify-content:space-between;align-items:baseline;padding:.55rem 0;font-size:.8rem}
@@ -218,8 +255,8 @@
   .act .a-icon.short{background:rgba(230,200,122,.16);color:var(--amber)}
   .act .a-icon.fee{background:rgba(230,200,122,.16);color:var(--amber)}
   .act .a-body{flex:1}
-  .act .a-title{color:var(--white);font-weight:500}
-  .act .a-sub{color:var(--silver-dim);font-size:.7rem;margin-top:1px}
+  .act .a-title{display:block;color:var(--white);font-weight:500}
+  .act .a-sub{display:block;color:var(--silver-dim);font-size:.7rem;margin-top:1px;line-height:1.45}
   .act .a-val{font-weight:500;white-space:nowrap}
   .act .a-val.debt{color:var(--red)}
   .watch-clear{font-size:.76rem;color:var(--silver);padding:.4rem 0;display:flex;align-items:center;gap:.5rem}
@@ -235,7 +272,7 @@
     @keyframes rise{to{opacity:1;transform:none}}
     .d1{animation-delay:.03s}.d2{animation-delay:.1s}.d3{animation-delay:.17s}.d4{animation-delay:.24s}.d5{animation-delay:.31s}.d6{animation-delay:.38s}.d7{animation-delay:.45s}
   }
-  @media (max-width:380px){.hero-num{font-size:2.4rem}.pockets{grid-template-columns:1fr}}
+  @media (max-width:380px){.hero-num{font-size:2.4rem}.cal-due{font-size:1.5rem}.cal-verdict{font-size:.66rem}}
 </style>
 </head>
 <body>
@@ -330,9 +367,24 @@
       <div class="inv-foot"><span>Total invested</span><span class="big" id="inv-total">—</span></div>
     </section>
 
-    <section class="card rise d6">
-      <div class="eyebrow">Pockets</div>
-      <div class="pockets" id="pockets"></div>
+    <section class="card rise d6" id="cal-card">
+      <div class="eyebrow" id="cal-label">Bills ahead</div>
+      <div class="cal-top">
+        <div class="cal-due" id="cal-due">—<small id="cal-due-sub">—</small></div>
+        <div class="cal-verdict" id="cal-verdict"></div>
+      </div>
+      <div class="cal-dow"><span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span></div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-alerts" id="cal-alerts"></div>
+      <div class="cal-legend">
+        <span><i class="bdot funded"></i>Covered</span>
+        <span><i class="bdot short"></i>Short</span>
+        <span><i class="bdot overdue"></i>Not paid</span>
+        <span><i class="bdot paid"></i>Settled</span>
+        <span><i style="width:11px;height:1.5px;border-radius:1px;background:rgba(182,240,156,.5)"></i>Payday</span>
+      </div>
+      <div class="cal-note" id="cal-note"></div>
+      <div id="other-pockets"></div>
     </section>
 
     <section class="card rise d7">
@@ -592,7 +644,7 @@ function render(){
   renderBuckets(b);
   renderCategories();
   renderMetrics();
-  renderPockets();
+  renderCalendar();
   renderWatch();
 }
 
@@ -843,64 +895,303 @@ function renderMetrics(){
   document.getElementById('m-cards-sub').textContent = w.southwest ? 'Discover + Southwest' : 'Discover (Southwest pending)';
 }
 
-// Pocket classification by mask. Bill pockets can carry a known monthly bill
-// for shortfall detection. e-fund + shared live in the Buckets card, excluded here.
-const POCKET_GROUPS = {
-  bills: {
-    label: 'Bills',
-    masks: {
-      '9406': { name: 'Home', bill: 3167 },
-      '9415': { name: 'Daycare', bill: 2210 },
-      '9413': { name: 'ComEd', bill: 181 },
-      '9409': { name: 'Phone' },
-      '9411': { name: 'Health' },
-      '9410': { name: 'Life Insurance' }
+/* ================= BILLS =================
+   One place to describe every recurring bill: the pocket that funds it,
+   what it costs, and the day of the month it lands.
+
+   dueDay / amount left null means "not configured yet" — those bills are
+   listed under the calendar as undated rather than being guessed at.
+   autopay: the debit fires on its own, so money still sitting in the pocket
+   just after the due date means something failed.
+
+   >>> Confirm the dueDay values below against your real due dates. <<<
+========================================== */
+const BILLS = [
+  { mask:'9406', name:'Home',           amount:3167, dueDay:1,    autopay:true  },
+  { mask:'9415', name:'Daycare',        amount:2210, dueDay:1,    autopay:true  },
+  { mask:'9413', name:'ComEd',          amount:181,  dueDay:15,   autopay:true  },
+  { mask:'9409', name:'Phone',          amount:null, dueDay:null, autopay:true  },
+  { mask:'9411', name:'Health',         amount:null, dueDay:null, autopay:true  },
+  { mask:'9410', name:'Life Insurance', amount:null, dueDay:null, autopay:true  }
+];
+
+// Pockets that aren't bills — no due dates, so they ride below the calendar.
+const OTHER_POCKETS = [
+  { label:'Savings goals', masks:{ '6006':'Travel', '9412':'Entertainment' } },
+  { label:'Business',      masks:{ '9408':'HireGrade / Etsy', '2608':"Lauren's Etsy" } }
+];
+
+// Payday markers — orientation only, never counted as money in the maths below.
+const PAYDAYS = [15, 'last'];
+
+const DAY = 86400000;
+const iso = d => d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+const lastDayOf = (y,m) => new Date(y, m+1, 0).getDate();
+const startOfDay = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const isPayday = d => PAYDAYS.some(p => p === 'last' ? d.getDate() === lastDayOf(d.getFullYear(), d.getMonth()) : p === d.getDate());
+
+let calModel = null;
+
+function balancesByMask(){
+  const m = {};
+  for(const a of (data.raw || [])) if(a.mask != null) m[String(a.mask)] = a.balance;
+  return m;
+}
+
+// Every dated bill occurrence inside [from, to], earliest first.
+function billOccurrences(from, to){
+  const occ = [];
+  let cur = new Date(from.getFullYear(), from.getMonth(), 1);
+  const stop = new Date(to.getFullYear(), to.getMonth(), 1);
+  while(cur <= stop){
+    for(const b of BILLS){
+      if(b.dueDay == null) continue;
+      const day = Math.min(b.dueDay, lastDayOf(cur.getFullYear(), cur.getMonth()));
+      const d = new Date(cur.getFullYear(), cur.getMonth(), day);
+      if(d >= from && d <= to) occ.push({ bill:b, date:d, key:iso(d) });
     }
-  },
-  goals: {
-    label: 'Savings goals',
-    masks: {
-      '6006': { name: 'Travel' },
-      '9412': { name: 'Entertainment' }
+    cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1);
+  }
+  return occ.sort((a,b) => a.date - b.date);
+}
+
+function buildCalModel(){
+  const today = startOfDay(new Date());
+  const from = new Date(today); from.setDate(today.getDate() - today.getDay()); // Sunday of this week
+  const to = new Date(from); to.setDate(from.getDate() + 34);                   // five weeks
+
+  const bal = balancesByMask();
+  const known = BILLS.filter(b => bal[b.mask] != null);
+  const billsCash = known.reduce((s,b) => s + bal[b.mask], 0);
+  const occ = billOccurrences(from, to);
+
+  // Settle what already happened. More than 5 days past due the pocket has
+  // started refilling for next cycle, so its balance says nothing — don't
+  // pretend to know either way.
+  for(const o of occ){
+    o.pocket = bal[o.bill.mask];
+    const daysPast = Math.round((today - o.date) / DAY);
+    o.daysPast = daysPast;
+    // A pocket missing from the feed is unknown, not empty — never a shortfall.
+    if(o.bill.amount == null || o.pocket == null){ o.status = 'unknown'; continue; }
+    if(daysPast > 5){ o.status = 'past'; continue; }
+    if(daysPast > 0){
+      o.status = o.pocket >= o.bill.amount * 0.9 ? 'overdue' : 'paid';
+      continue;
     }
-  },
-  business: {
-    label: 'Business',
-    masks: {
-      '9408': { name: 'HireGrade / Etsy' },
-      '2608': { name: "Lauren's Etsy" }
+    o.status = null; // decided by the walk below
+  }
+
+  // The walk. Two things make this different from the old per-pocket warning:
+  //
+  //  - Money moves freely between pockets, so what matters is whether the
+  //    pool covers the bills in due order, not whether each pocket is full.
+  //    A half-filled pocket mid-cycle is not news.
+  //  - Pockets get refilled on payday. The window is five weeks, so a monthly
+  //    bill shows up twice and no single cycle of cash could ever cover both.
+  //    Funding per payday is taken as one payday's share of the bills the
+  //    pockets are configured to carry — the premise of a pocket system —
+  //    rather than a guess at take-home pay.
+  //
+  // So a shortfall here means the pockets are genuinely behind the bills, not
+  // that the month is young.
+  const monthlyBills = BILLS.reduce((s,b) => s + (b.amount || 0), 0);
+  const perPayday = PAYDAYS.length ? monthlyBills / PAYDAYS.length : 0;
+
+  const pending = occ.filter(o => o.status === null);
+  let running = billsCash, low = Infinity, lowDate = null, pinch = null, i = 0;
+  for(const cursor = new Date(today); cursor <= to; cursor.setDate(cursor.getDate() + 1)){
+    if(isPayday(cursor)) running += perPayday;
+    while(i < pending.length && pending[i].key === iso(cursor)){
+      const o = pending[i++];
+      running -= o.bill.amount;
+      if(running < 0){
+        o.status = 'short';
+        if(!pinch) pinch = { occ:o };
+      } else o.status = 'funded';
+      if(running < low){ low = running; lowDate = new Date(cursor); }
     }
   }
-};
+  // Nothing judged (no dated bills ahead) — the low point is just today.
+  if(low === Infinity){ low = billsCash; lowDate = today; }
+  if(pinch) pinch.gap = -low;
 
-function renderPockets(){
-  const raw = data.raw || [];
-  const balByMask = {};
-  for(const a of raw) if(a.mask != null) balByMask[a.mask] = a.balance;
+  const ahead = occ.filter(o => o.status === 'funded' || o.status === 'short');
+  const dueTotal = ahead.reduce((s,o) => s + o.bill.amount, 0);
+  return {
+    today, from, to, occ, bal, billsCash, pinch, dueTotal,
+    dueCount: ahead.length,
+    low, lowDate, perPayday,
+    shared: (data.buckets || {}).shared || 0,
+    undated: BILLS.filter(b => b.dueDay == null && bal[b.mask] != null),
+    noFeed: known.length === 0
+  };
+}
 
+const STATUS_RANK = ['overdue','short','funded','unknown','paid','past'];
+
+function renderCalendar(){
+  const m = calModel = buildCalModel();
+  const fmtDay = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
+
+  document.getElementById('cal-label').textContent = 'Bills ahead · next five weeks';
+  document.getElementById('cal-due').innerHTML = (m.noFeed ? '—' : fmt$(m.dueTotal))
+    + '<small id="cal-due-sub">' + (m.noFeed
+        ? 'awaiting the balance feed'
+        : m.dueCount
+          ? 'due over ' + m.dueCount + (m.dueCount === 1 ? ' bill' : ' bills') + ' · ' + fmt$(m.billsCash) + ' in the pockets'
+          : 'nothing dated ahead · ' + fmt$(m.billsCash) + ' in the pockets') + '</small>';
+
+  // verdict
+  const v = document.getElementById('cal-verdict');
+  if(m.noFeed){
+    v.className = 'cal-verdict mute';
+    v.innerHTML = 'No bill-pocket balances in the feed yet';
+  } else if(!m.dueCount){
+    v.className = 'cal-verdict mute';
+    v.innerHTML = 'No dated bills in this window';
+  } else if(m.pinch){
+    const covered = m.shared >= m.pinch.gap;
+    v.className = 'cal-verdict ' + (covered ? 'warn' : 'bad');
+    v.innerHTML = 'Runs <b>' + fmt$(m.pinch.gap) + '</b> short by ' + fmtDay(m.pinch.occ.date)
+      + (covered ? '<br>Shared reserve covers it' : '<br>Shared reserve does not cover it');
+  } else {
+    v.className = 'cal-verdict';
+    v.innerHTML = 'All covered<br>Tightest <b>' + fmt$(m.low) + '</b> on ' + fmtDay(m.lowDate);
+  }
+
+  // grid
+  const byDay = {};
+  for(const o of m.occ) (byDay[o.key] = byDay[o.key] || []).push(o);
+  const todayKey = iso(m.today);
+  let cells = '';
+  for(let i = 0; i < 35; i++){
+    const d = new Date(m.from); d.setDate(m.from.getDate() + i);
+    const key = iso(d), list = byDay[key] || [];
+    const cls = ['cday'];
+    if(list.length) cls.push('has');
+    if(key === todayKey) cls.push('today');
+    else if(d < m.today) cls.push('gone');
+    if(isPayday(d)) cls.push('payday');
+    // the only month label the grid needs: the day the month turns over
+    const num = d.getDate() === 1
+      ? '<em>' + d.toLocaleDateString('en-US', { month:'short' }).toUpperCase() + '</em>1'
+      : d.getDate();
+    const dots = [...list]
+      .sort((a,b) => STATUS_RANK.indexOf(a.status) - STATUS_RANK.indexOf(b.status))
+      .slice(0,3)
+      .map(o => '<span class="bdot ' + o.status + '"></span>').join('');
+    const label = list.length ? ' role="button" tabindex="0" aria-label="' + d.getDate() + ': '
+      + list.map(o => o.bill.name).join(', ') + '" onclick="openDay(\'' + key + '\')"' : '';
+    cells += '<div class="' + cls.join(' ') + '"' + label + '>'
+      + '<span class="dnum">' + num + '</span><span class="cdots">' + dots + '</span></div>';
+  }
+  document.getElementById('cal-grid').innerHTML = cells;
+
+  // alerts — only things that actually need a decision
+  const alerts = [];
+  for(const o of m.occ.filter(o => o.status === 'overdue')){
+    alerts.push({ icon:'!', cls:'short', title:o.bill.name + ' may not have been paid',
+      sub: fmt$(o.pocket) + ' still in the pocket · due ' + (o.daysPast === 1 ? 'yesterday' : o.daysPast + ' days ago'),
+      val: fmt$(o.bill.amount), vcls:'debt' });
+  }
+  if(m.pinch){
+    alerts.push({ icon:'!', cls:'short', title:'Short by ' + fmtDay(m.pinch.occ.date),
+      sub: m.pinch.occ.bill.name + ' is the bill that breaks the run · Shared holds ' + fmt$(m.shared),
+      val: '−' + fmt$(m.pinch.gap), vcls:'' });
+  }
+  document.getElementById('cal-alerts').innerHTML = alerts.map(a =>
+    '<div class="act"><span class="a-icon ' + a.cls + '">' + a.icon + '</span>'
+    + '<span class="a-body"><span class="a-title">' + a.title + '</span><span class="a-sub">' + a.sub + '</span></span>'
+    + '<span class="a-val ' + a.vcls + '">' + a.val + '</span></div>').join('');
+
+  // undated bills — say so plainly instead of inventing a date
+  const note = document.getElementById('cal-note');
+  const lines = [];
+  if(!m.noFeed && m.dueCount){
+    lines.push('Assumes ' + fmt$(m.perPayday) + ' of pocket funding each payday (the ticks).');
+  }
+  if(m.undated.length){
+    lines.push(m.undated.map(b => b.name).join(' · ') + ' — no due date set, so they are not on the calendar yet.');
+  }
+  note.innerHTML = lines.join('<br>');
+
+  renderOtherPockets(m.bal);
+}
+
+function renderOtherPockets(bal){
   let html = '';
-  for(const [key, group] of Object.entries(POCKET_GROUPS)){
+  for(const group of OTHER_POCKETS){
     const rows = Object.entries(group.masks)
-      .map(([mask, cfg]) => ({ ...cfg, mask, bal: balByMask[mask] }))
-      .filter(p => p.bal != null);
+      .map(([mask, name]) => ({ name, bal: bal[mask] }))
+      .filter(r => r.bal != null);
     if(!rows.length) continue;
-    const sum = rows.reduce((s,p)=> s + p.bal, 0);
-    html += `<div class="pgroup"><div class="pgroup-head"><span>${group.label}</span><span class="g-sum">${fmt$(sum)}</span></div>`;
-    html += rows.map(p => {
-      const short = p.bill && p.bal < p.bill;
-      const note = p.bill ? `<small>of ${fmt$(p.bill)}</small>` : '';
-      return `<div class="prow${short?' short':''}"><span class="pr-name">${p.name}${note}</span><span class="pr-val${p.bal===0?' zero':''}">${fmt$(p.bal)}</span></div>`;
-    }).join('');
+    html += '<div class="pgroup"><div class="pgroup-head"><span>' + group.label + '</span>'
+      + '<span class="g-sum">' + fmt$(rows.reduce((s,r) => s + r.bal, 0)) + '</span></div>';
+    html += rows.map(r => '<div class="prow"><span class="pr-name">' + r.name + '</span>'
+      + '<span class="pr-val' + (r.bal === 0 ? ' zero' : '') + '">' + fmt$(r.bal) + '</span></div>').join('');
     html += '</div>';
   }
-  document.getElementById('pockets').innerHTML = html || '<div class="prow"><span class="pr-name">No pocket data yet</span></div>';
+  document.getElementById('other-pockets').innerHTML = html;
+}
+
+const STATUS_COPY = {
+  funded:  o => 'Covered — the money reaches this one',
+  short:   o => 'The money runs out before this one',
+  overdue: o => 'Autopay should have taken this already',
+  paid:    o => 'Pocket drained around the due date — looks paid',
+  past:    o => 'Due ' + o.daysPast + ' days ago · pocket has refilled, nothing to read from it',
+  unknown: o => o.bill.amount == null ? 'No amount configured'
+                                       : 'Its pocket is not in the feed yet'
+};
+
+function openDay(key){
+  if(!calModel) return;
+  const list = calModel.occ.filter(o => o.key === key);
+  if(!list.length) return;
+  const d = list[0].date;
+  const total = list.reduce((s,o) => s + (o.bill.amount || 0), 0);
+
+  document.getElementById('dd-month').textContent = d.toLocaleDateString('en-US', { weekday:'long' });
+  document.getElementById('dd-title').textContent = d.toLocaleDateString('en-US', { month:'long', day:'numeric' });
+  document.getElementById('dd-sum').textContent = fmt$(total);
+
+  const pace = document.getElementById('dd-pace');
+  const days = Math.round((d - calModel.today) / DAY);
+  pace.className = 'dd-pace';
+  pace.innerHTML = days === 0 ? 'Due <b>today</b>'
+    : days > 0 ? 'Due in <b>' + days + (days === 1 ? ' day' : ' days') + '</b>'
+    : '<b>' + Math.abs(days) + (days === -1 ? ' day' : ' days') + '</b> ago';
+
+  let html = '<div class="dd-sec">On this day</div>';
+  html += list.map(o => {
+    const gap = o.bill.amount != null && o.pocket != null ? o.bill.amount - o.pocket : null;
+    const sub = [STATUS_COPY[o.status](o)];
+    if(o.pocket != null && o.bill.amount != null){
+      sub.push(gap > 0
+        ? 'Its own pocket holds ' + fmt$(o.pocket) + ' — the other ' + fmt$(gap)
+          + ' comes from the other pockets or payday funding'
+        : 'Its own pocket holds ' + fmt$(o.pocket) + ', enough by itself');
+    }
+    return '<div class="bill"><span class="bdot ' + o.status + '"></span>'
+      + '<span class="b-body"><span class="b-name">' + o.bill.name + '</span>'
+      + '<span class="b-sub">' + sub.join('<br>') + '</span></span>'
+      + '<span class="b-amt">' + (o.bill.amount != null ? fmt$(o.bill.amount) : '—')
+      + (o.bill.autopay ? '<small>autopay</small>' : '') + '</span></div>';
+  }).join('');
+
+  html += '<div class="dd-compare">Bill pockets hold <b>' + fmt$(calModel.billsCash) + '</b> today'
+    + (calModel.pinch
+        ? ', and run out ' + (calModel.pinch.occ.key === key ? 'here' : 'on ' + calModel.pinch.occ.date.toLocaleDateString('en-US',{month:'long',day:'numeric'})) + '.'
+        : '. With payday funding that carries every bill in the next five weeks, tightest at '
+          + fmt$(calModel.low) + ' on ' + calModel.lowDate.toLocaleDateString('en-US',{month:'long',day:'numeric'}) + '.') + '</div>';
+
+  document.getElementById('dd-body').innerHTML = html;
+  document.getElementById('dd').classList.add('open');
 }
 
 function renderWatch(){
   const w = data.watch || {};
-  const raw = data.raw || [];
-  const balByMask = {};
-  for(const a of raw) if(a.mask != null) balByMask[a.mask] = a.balance;
   const actions = [];
 
   // 1. Credit cards carrying a balance (things to pay down)
@@ -910,13 +1201,7 @@ function renderWatch(){
     }
   }
 
-  // 2. Bill pockets running short of their known bill
-  for(const [mask, cfg] of Object.entries(POCKET_GROUPS.bills.masks)){
-    if(cfg.bill && balByMask[mask] != null && balByMask[mask] < cfg.bill){
-      const gap = cfg.bill - balByMask[mask];
-      actions.push({ icon:'short', cls:'short', title:cfg.name + ' pocket short', sub:`${fmt$(balByMask[mask])} of ${fmt$(cfg.bill)} — mid-cycle is normal`, val:'−'+fmt$(gap) });
-    }
-  }
+  // 2. Bill shortfalls live on the calendar now — Watch keeps debt and fees.
 
   // 3. Known upcoming annual fee (Southwest, July)
   const now = new Date();
